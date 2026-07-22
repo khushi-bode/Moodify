@@ -21,8 +21,6 @@
   },
   "lint-staged": {
     "*": "prettier --write --ignore-unknown",
-    "frontend/**/*": {
-      "{js,jsx,ts,tsx}": "eslint --fix"
-    }
+    "frontend/**/*.{js,jsx,ts,tsx}": "eslint --fix --prefix frontend"
   }
 }
