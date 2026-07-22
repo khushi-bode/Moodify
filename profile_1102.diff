@@ -1,0 +1,411 @@
+Created At: 2026-07-22T08:35:18Z
+Completed At: 2026-07-22T08:35:20Z
+The following changes were made by the multi_replace_file_content tool to: c:\Users\ASUS\OneDrive\Documents\moodify\frontend\src\app\dashboard\profile\page.tsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -19,6 +19,8 @@
+   AlertDialogTitle,
+   AlertDialogTrigger,
+ } from "@/components/ui/alert-dialog";
++import { motion } from "framer-motion";
++import useSWR from "swr";
+ 
+ export default function ProfilePage() {
+   const { theme, setTheme } = useTheme();
+@@ -30,28 +30,18 @@
+   const [isDeletingHistory, setIsDeletingHistory] = useState(false);
+   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+   
+-  // Stubs for preferences
+-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
++  const { data, error, isLoading } = useSWR("/api/user/profile-stats", async (url) => {
++    const res = await fetch(url);
++    if (!res.ok) throw new Error("Failed to fetch");
++    return res.json();
++  });
+ 
+   useEffect(() => {
+     setMounted(true);
+-    const fetchUser = async () => {
+-      const { data: { user } } = await supabase.auth.getUser();
+-      if (user) {
+-        setEmail(user.email || "");
+-        setName(user.user_metadata?.name || "");
+-      }
+-    };
+-    fetchUser();
+-  }, [supabase.auth]);
++  }, []);
+ 
+   if (!mounted) return null;
+ 
+-  const handleSaveProfile = () => {
+-    // In a full app, this would update user_metadata in Supabase
+-    toast.success("Profile saved successfully");
+-  };
+-
+   const handleDeleteHistory = async () => {
+     setIsDeletingHistory(true);
+     try {
+@@ -58,5 +58,6 @@
+       if (!res.ok) throw new Error("Failed to delete");
+       toast.success("Mood history deleted successfully.");
++      window.location.reload();
+     } catch (err) {
+       toast.error("Could not delete mood history.", { style: { backgroundColor: "var(--color-error)", color: "white" } });
+     } finally {
+@@ -77,152 +77,207 @@
+     }
+   };
+ 
+-  return (
+-    <div className="w-full max-w-[800px] mx-auto py-8">
+-      <h1 className="text-h2 text-text-primary mb-8">Profile & Settings</h1>
+-      
+-      <div className="flex flex-col gap-8">
+-        
+-        {/* Personal Info */}
+-        <section className="bg-surface rounded-card border border-border p-6 shadow-small">
+-          <div className="flex items-center gap-3 mb-6">
+-            <User className="h-5 w-5 text-primary" />
+-            <h2 className="text-h4 text-text-primary">Personal Info</h2>
+-          </div>
+-          
+-          <div className="space-y-4 max-w-md">
+-            <div>
+-              <label className="block text-caption text-text-secondary font-semibold uppercase tracking-wider mb-2">Name</label>
+-              <input 
+-                type="text" 
+-                value={name} 
+-                onChange={(e) => setName(e.target.value)}
+-                placeholder="Your Name"
+-                className="w-full bg-background border border-border rounded-input px-4 py-3 text-body focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+-              />
+-            </div>
+-            <div>
+-              <label className="block text-caption text-text-secondary font-semibold uppercase tracking-wider mb-2">Email Address</label>
+-              <input 
+-                type="email" 
+-                value={email} 
+-                disabled
+-                className="w-full bg-muted border border-border rounded-input px-4 py-3 text-body text-text-secondary opacity-70 cursor-not-allowed"
+-              />
+-            </div>
+-            <Button onClick={handleSaveProfile} className="rounded-button bg-primary text-white hover:bg-primary/90 shadow-small px-6 py-2">
+-              Save Changes
+-            </Button>
+-          </div>
+-        </section>
+-
+-        {/* Preferences */}
+-        <section className="bg-surface rounded-card border border-border p-6 shadow-small">
+-          <div className="flex items-center gap-3 mb-6">
+-            <Bell className="h-5 w-5 text-primary" />
+-            <h2 className="text-h4 text-text-primary">Preferences</h2>
+-          </div>
+-          
+-          <div className="space-y-6">
+-            <div className="flex items-center justify-between">
+-              <div>
+-                <h3 className="text-body font-medium text-text-primary">Dark Mode</h3>
+-                <p className="text-caption text-text-secondary">Switch between light and dark themes</p>
+-              </div>
+-              <Switch 
+-                checked={theme === "dark"}
+-                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+-              />
+-            </div>
+-            
+-            <div className="flex items-center justify-between">
+-              <div>
+-                <h3 className="text-body font-medium text-text-primary">Push Notifications</h3>
+-                <p className="text-caption text-text-secondary">Receive daily wellness reminders</p>
+-              </div>
+-              <Switch 
+-                checked={notificationsEnabled}
+-                onCheckedChange={setNotificationsEnabled}
+-              />
+-            </div>
+-          </div>
+-        </section>
+-
+-        {/* Danger Zone */}
+-        <section className="bg-error/5 rounded-card border border-error/20 p-6 shadow-small mt-8">
+-          <div className="flex items-center gap-3 mb-6">
+-            <AlertTriangle className="h-5 w-5 text-error" />
+-            <h2 className="text-h4 text-error">Data & Privacy</h2>
+-          </div>
+-          
+-          <div className="space-y-6">
+-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-error/10">
+-              <div>
+-                <h3 className="text-body font-medium text-text-primary">Delete Mood History</h3>
+-                <p className="text-caption text-text-secondary">Permanently delete all your scans and chat logs.</p>
+-              </div>
+-              
+-              <AlertDialog>
+-                <AlertDialogTrigger render={
+-                  <Button variant="outline" className="rounded-button border-error text-error hover:bg-error/10">
+-                    Delete History
+-                  </Button>
+-                } />
+-                <AlertDialogContent className="rounded-dialog max-w-md shadow-extra-large">
+-                  <AlertDialogHeader>
+-                    <AlertDialogTitle className="text-h3 text-text-primary">Are you sure?</AlertDialogTitle>
+-                    <AlertDialogDescription className="text-body text-text-secondary">
+-                      This will permanently delete your entire mood history, reports, and Lumi chat logs. This action cannot be undone.
+-                    </AlertDialogDescription>
+-                  </AlertDialogHeader>
+-                  <AlertDialogFooter className="mt-6">
+-                    <AlertDialogCancel autoFocus className="rounded-button border-border">Cancel</AlertDialogCancel>
+-                    <AlertDialogAction 
+-                      onClick={handleDeleteHistory}
+-                      className="rounded-button bg-error text-white hover:bg-error/90"
+-                    >
+-                      {isDeletingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete History"}
+-                    </AlertDialogAction>
+-                  </AlertDialogFooter>
+-                </AlertDialogContent>
+-              </AlertDialog>
+-            </div>
+-            
+-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+-              <div>
+-                <h3 className="text-body font-medium text-text-primary">Delete Account</h3>
+-                <p className="text-caption text-text-secondary">Permanently delete your account and all associated data.</p>
+-              </div>
+-              
+-              <AlertDialog>
+-                <AlertDialogTrigger render={
+-                  <Button variant="destructive" className="rounded-button bg-error text-white hover:bg-error/90 shadow-small">
+-                    Delete Account
+-                  </Button>
+-                } />
+-                <AlertDialogContent className="rounded-dialog max-w-md shadow-extra-large">
+-                  <AlertDialogHeader>
+-                    <AlertDialogTitle className="text-h3 text-text-primary">Delete Account?</AlertDialogTitle>
+-                    <AlertDialogDescription className="text-body text-text-secondary">
+-                      This will permanently delete your account, wiping all personal info, scans, and settings from our servers. You cannot undo this.
+-                    </AlertDialogDescription>
+-                  </AlertDialogHeader>
+-                  <AlertDialogFooter className="mt-6">
+-                    <AlertDialogCancel autoFocus className="rounded-button border-border">Keep Account</AlertDialogCancel>
+-                    <AlertDialogAction 
+-                      onClick={handleDeleteAccount}
+-                      className="rounded-button bg-error text-white hover:bg-error/90"
+-                    >
+-                      {isDeletingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Account"}
+-                    </AlertDialogAction>
+-                  </AlertDialogFooter>
+-                </AlertDialogContent>
+-              </AlertDialog>
+-            </div>
+-          </div>
+-        </section>
+-
++  if (isLoading) {
++    return (
++      <div className="w-full max-w-[1000px] mx-auto py-8 animate-pulse space-y-8">
++        <div className="h-48 bg-surface rounded-card"></div>
++        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
++          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-surface rounded-card"></div>)}
++        </div>
+       </div>
++    );
++  }
++
++  const stats = data?.stats || {
++    totalScans: 0, completedTasks: 0, averageMood: 0, 
++    daysActive: 0, currentStreak: 0, emotionalStability: 0, joinDate: new Date().toISOString()
++  };
++  const insights = data?.insights || "Keep scanning to unlock Lumi's insights about your emotional patterns.";
++  
++  const joinDateStr = new Date(stats.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
++  const overallProgress = Math.round((stats.emotionalStability + (stats.averageMood)) / 2) || 0;
++
++  // Calculate some simple achievements
++  const achievements = [
++    { id: "first", title: "First Scan", icon: "🥇", unlocked: stats.totalScans > 0 },
++    { id: "streak3", title: "3-Day Streak", icon: "🔥", unlocked: stats.currentStreak >= 3 },
++    { id: "streak7", title: "7-Day Streak", icon: "🌟", unlocked: stats.currentStreak >= 7 },
++    { id: "consistency", title: "Consistency Master", icon: "🏆", unlocked: stats.daysActive >= 14 },
++    { id: "balanced", title: "Balanced Week", icon: "🌈", unlocked: stats.emotionalStability >= 80 },
++    { id: "goal", title: "Goal Crusher", icon: "🎯", unlocked: stats.completedTasks >= 10 }
++  ];
++
++  return (
++    <div className="w-full max-w-[1000px] mx-auto py-8 space-y-8 animate-in fade-in duration-500">
++      
++      {/* Profile Header */}
++      <section className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-primary/5 to-transparent border border-primary/20 rounded-card p-8 md:p-10 shadow-medium flex flex-col md:flex-row items-center md:items-start gap-8">
++        <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
++        
++        <div className="shrink-0 relative">
++          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-primary/50 p-1">
++            <div className="w-full h-full bg-surface rounded-full flex items-center justify-center">
++               <User className="h-12 w-12 md:h-16 md:w-16 text-primary/80" />
++            </div>
++          </div>
++          {stats.currentStreak >= 3 && (
++            <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-1 shadow-small">
++              <div className="bg-orange-500/20 text-orange-500 px-3 py-1 rounded-full text-caption font-bold flex items-center gap-1">
++                🔥 {stats.currentStreak}
++              </div>
++            </div>
++          )}
++        </div>
++
++        <div className="flex-1 text-center md:text-left z-10 pt-2">
++          <h1 className="text-h2 text-text-primary mb-2">Welcome back!</h1>
++          <p className="text-body text-text-secondary mb-6">Member since {joinDateStr}</p>
++          
++          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
++            <div className="bg-surface/60 backdrop-blur-sm border border-border px-4 py-2 rounded-full flex items-center gap-2">
++              <span className="text-xl">😊</span>
++              <span className="text-small font-medium text-text-primary">Avg Mood: {stats.averageMood}%</span>
++            </div>
++            <div className="bg-surface/60 backdrop-blur-sm border border-border px-4 py-2 rounded-full flex items-center gap-2">
++              <span className="text-xl">🎯</span>
++              <span className="text-small font-medium text-text-primary">{stats.completedTasks} Plans Completed</span>
++            </div>
++          </div>
++        </div>
++
++        {/* Circular Progress (Overall Wellness) */}
++        <div className="shrink-0 flex flex-col items-center justify-center z-10 pt-2">
++           <div className="relative w-28 h-28 flex items-center justify-center mb-3">
++             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
++               <path className="text-border" strokeWidth="3" stroke="currentColor" fill="none"
++                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
++               <motion.path 
++                 className="text-primary drop-shadow-[0_0_8px_var(--color-primary)]" strokeWidth="3" strokeDasharray={`${overallProgress}, 100`} strokeLinecap="round" stroke="currentColor" fill="none"
++                 initial={{ strokeDasharray: "0, 100" }}
++                 animate={{ strokeDasharray: `${overallProgress}, 100` }}
++                 transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
++                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
++             </svg>
++             <div className="absolute inset-0 flex flex-col items-center justify-center">
++               <span className="text-h3 text-text-primary">{overallProgress}%</span>
++             </div>
++           </div>
++           <span className="text-caption font-semibold text-text-secondary uppercase tracking-wider">Wellness Score</span>
++        </div>
++      </section>
++
++      {/* Lumi's Thoughts */}
++      <section className="bg-surface rounded-card border border-border p-8 shadow-small relative overflow-hidden group">
++        <div className="absolute top-0 left-0 w-1 h-full bg-primary group-hover:shadow-[0_0_15px_var(--color-primary)] transition-shadow"></div>
++        <div className="flex items-start gap-6">
++          <div className="shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-2xl">✨</div>
++          <div>
++            <h2 className="text-h4 text-text-primary mb-3">Lumi&apos;s Thoughts About You</h2>
++            <p className="text-body text-text-secondary leading-relaxed italic">
++              "{insights}"
++            </p>
++          </div>
++        </div>
++      </section>
++
++      {/* Statistics Grid */}
++      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
++        {[
++          { icon: "😊", label: "Total Scans", value: stats.totalScans },
++          { icon: "📅", label: "Days Active", value: stats.daysActive },
++          { icon: "💙", label: "Stability Score", value: `${stats.emotionalStability}%` },
++          { icon: "🔥", label: "Current Streak", value: `${stats.currentStreak} Days` }
++        ].map((stat, i) => (
++          <motion.div 
++            key={i} 
++            initial={{ opacity: 0, y: 20 }}
++            animate={{ opacity: 1, y: 0 }}
++            transition={{ duration: 0.5, delay: i * 0.1 }}
++            className="bg-surface rounded-card border border-border p-6 shadow-small hover:shadow-medium hover:border-primary/30 transition-all hover:-translate-y-1"
++          >
++            <div className="text-3xl mb-4 drop-shadow-sm">{stat.icon}</div>
++            <div className="text-h3 text-text-primary mb-1">{stat.value}</div>
++            <div className="text-caption text-text-secondary font-medium">{stat.label}</div>
++          </motion.div>
++        ))}
++      </section>
++
++      {/* Achievements Showcase */}
++      <section className="bg-surface rounded-card border border-border p-8 shadow-small">
++        <h2 className="text-h4 text-text-primary mb-6 flex items-center gap-2">
++          <span className="text-2xl">🏆</span> Achievements
++        </h2>
++        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
++          {achievements.map((ach) => (
++            <div 
++              key={ach.id} 
++              className={`flex flex-col items-center justify-center p-4 rounded-xl text-center transition-all ${
++                ach.unlocked 
++                  ? "bg-background border border-primary/20 shadow-small hover:scale-105 hover:shadow-medium" 
++                  : "bg-muted/50 border border-transparent opacity-50 grayscale"
++              }`}
++            >
++              <div className="text-4xl mb-3 drop-shadow-sm">{ach.icon}</div>
++              <div className="text-small font-medium text-text-primary leading-tight">{ach.title}</div>
++              {!ach.unlocked && <div className="text-[10px] text-text-secondary mt-1 uppercase tracking-wider">Locked</div>}
++            </div>
++          ))}
++        </div>
++      </section>
++
++      {/* Quick Actions */}
++      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
++        <button onClick={() => router.push("/scan")} className="bg-primary text-white rounded-card p-6 shadow-medium hover:shadow-primary/30 hover:-translate-y-1 transition-all flex flex-col items-center justify-center gap-3">
++          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl">📷</div>
++          <span className="font-semibold text-body">Scan Mood</span>
++        </button>
++        <button onClick={() => router.push("/dashboard/reports")} className="bg-surface border border-border text-text-primary rounded-card p-6 shadow-small hover:shadow-medium hover:border-primary/50 hover:-translate-y-1 transition-all flex flex-col items-center justify-center gap-3">
++          <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xl">📊</div>
++          <span className="font-semibold text-body">View Reports</span>
++        </button>
++        <button onClick={() => router.push("/dashboard/chat")} className="bg-surface border border-border text-text-primary rounded-card p-6 shadow-small hover:shadow-medium hover:border-primary/50 hover:-translate-y-1 transition-all flex flex-col items-center justify-center gap-3">
++          <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xl">🤖</div>
++          <span className="font-semibold text-body">Chat with Lumi</span>
++        </button>
++      </section>
++
++      {/* Danger Zone */}
++      <section className="mt-12 border-t border-border pt-8 pb-4">
++        <div className="flex items-center gap-2 mb-6">
++          <AlertTriangle className="h-5 w-5 text-error" />
++          <h2 className="text-h4 text-error">Data & Privacy</h2>
++        </div>
++        
++        <div className="bg-error/5 rounded-card border border-error/20 p-6 shadow-small flex flex-col sm:flex-row sm:items-center justify-between gap-6">
++          <div>
++            <h3 className="text-body font-medium text-text-primary">Delete Mood History</h3>
++            <p className="text-caption text-text-secondary mt-1">Permanently delete all your scans and chat logs.</p>
++          </div>
++          
++          <AlertDialog>
++            <AlertDialogTrigger asChild>
++              <Button variant="outline" className="rounded-button border-error text-error hover:bg-error/10 shrink-0">
++                Delete History
++              </Button>
++            </AlertDialogTrigger>
++            <AlertDialogContent className="rounded-dialog max-w-md shadow-extra-large">
++              <AlertDialogHeader>
++                <AlertDialogTitle className="text-h3 text-text-primary">Are you sure?</AlertDialogTitle>
++                <AlertDialogDescription className="text-body text-text-secondary">
++                  This will permanently delete your entire mood history, reports, and Lumi chat logs. This action cannot be undone.
++                </AlertDialogDescription>
++              </AlertDialogHeader>
++              <AlertDialogFooter className="mt-6">
++                <AlertDialogCancel className="rounded-button border-border">Cancel</AlertDialogCancel>
++                <AlertDialogAction onClick={handleDeleteHistory} className="rounded-button bg-error text-white hover:bg-error/90">
++                  {isDeletingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete History"}
++                </AlertDialogAction>
++              </AlertDialogFooter>
++            </AlertDialogContent>
++          </AlertDialog>
++        </div>
++      </section>
++
+     </div>
+   );
+ }
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

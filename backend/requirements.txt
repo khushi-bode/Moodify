@@ -1,0 +1,10 @@
+# Python 3.12 (<= 3.12) is STRICTLY required due to DeepFace/TensorFlow Windows compatibility.
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+mediapipe
+opencv-python-headless
+google-genai
+numpy
+supabase

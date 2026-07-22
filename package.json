@@ -1,0 +1,28 @@
+{
+  "name": "moodify",
+  "version": "1.0.0",
+  "description": "- `frontend/`: Next.js web application\r - `backend/`: FastAPI backend service\r - `database/`: Database schema, migrations, and seeds (Supabase PostgreSQL)\r - `shared/`: Shared definitions and constants\r - `docs/`: Project documentation\r - `assets/`: Design assets",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.1.0",
+    "prettier": "^3.9.6"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown",
+    "frontend/**/*": {
+      "{js,jsx,ts,tsx}": "eslint --fix"
+    }
+  }
+}
