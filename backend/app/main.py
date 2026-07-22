@@ -10,10 +10,14 @@ from app.api import scan, reports
 app = FastAPI(title="Moodify API")
 
 # Configure CORS
+frontend_url = os.environ.get("FRONTEND_URL")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+if frontend_url:
+    origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
